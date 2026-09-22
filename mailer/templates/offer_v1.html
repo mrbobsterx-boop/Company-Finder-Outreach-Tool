@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; font-size: 14px; color: #222; line-height: 1.5;">
+  <p>Hi {{ company_name }} team,</p>
+
+  <p>
+    I came across {{ company_name }} while looking at businesses in {{ city }}
+    and wanted to reach out with a quick idea that might be useful to you.
+  </p>
+
+  <p>{{ offer_text }}</p>
+
+  <p>
+    If this isn't relevant, no worries at all — just let me know and I won't
+    follow up again.
+  </p>
+
+  <p>
+    Best regards,<br>
+    {{ sender_name }}
+  </p>
+
+  <hr style="border: none; border-top: 1px solid #ddd; margin: 24px 0;">
+  <p style="font-size: 11px; color: #888;">
+    You are receiving this because {{ company_name }} is publicly listed as a
+    business in {{ city }}. If you'd rather not hear from us again,
+    <a href="{{ unsubscribe_url }}">unsubscribe here</a>.
+  </p>
+</body>
+</html>

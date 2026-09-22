@@ -1,0 +1,70 @@
+# Copy this file to config.yaml and fill in your own values.
+# config.yaml is gitignored so credentials never get committed.
+
+database:
+  path: data/company_finder.sqlite3
+
+discovery:
+  provider: osm # only "osm" is implemented today; add a new DiscoveryProvider for paid sources
+  nominatim_base_url: https://nominatim.openstreetmap.org
+  overpass_base_url: https://overpass-api.de/api/interpreter
+  request_delay_seconds: 1.0
+  user_agent: "company-finder-outreach-tool/0.1 (contact: you@example.com)"
+
+enrichment:
+  contact_page_keywords:
+    - contact
+    - kontakt
+    - impressum
+    - imprint
+    - about
+    - uber-uns
+    - über-uns
+    - ueber-uns
+    - company
+  user_agent: "company-finder-outreach-tool/0.1 (contact: you@example.com; +https://example.com/bot)"
+  domain_delay_seconds: 1.0
+  min_delay_seconds: 0.5
+  max_delay_seconds: 2.0
+  request_timeout_seconds: 10
+  cache_dir: enrichment/cache
+  use_playwright_fallback: false # not enabled by default; heavier and slower
+  ai_fallback:
+    backend: "off" # "off" | "cloud_api" | "local_ollama"
+    cloud_api_model: claude-sonnet-5
+    # cloud_api_key: set via COMPANY_FINDER_ANTHROPIC_API_KEY env var instead
+    ollama_base_url: http://localhost:11434
+    ollama_model: llama3.1:8b
+    max_page_chars: 4000
+
+compliance:
+  # Countries with strict cold-outreach/consent rules for B2B email.
+  # Recipients here are excluded by default unless --allow-strict-countries is passed.
+  strict_consent_countries: [DE, IT, AT, FR]
+  personal_email_domains:
+    - gmail.com
+    - yahoo.com
+    - hotmail.com
+    - outlook.com
+    - icloud.com
+    - gmx.com
+    - gmx.de
+    - web.de
+    - aol.com
+    - mail.ru
+    - yandex.ru
+    - protonmail.com
+  business_email_prefixes: [info, kontakt, contact, office, sales, hello]
+  min_days_between_emails: 90
+
+mailer:
+  provider: smtp
+  smtp_host: smtp-relay.brevo.com # Brevo free tier: ~300 emails/day
+  smtp_port: 587
+  smtp_username: "" # or set COMPANY_FINDER_SMTP_USERNAME
+  smtp_password: "" # or set COMPANY_FINDER_SMTP_PASSWORD
+  from_email: you@example.com
+  from_name: "Your Company"
+  unsubscribe_base_url: https://example.com/unsubscribe
+  throttle_seconds: 8
+  templates_dir: mailer/templates
