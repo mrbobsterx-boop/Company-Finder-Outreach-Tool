@@ -109,6 +109,13 @@ class Repository:
                WHERE contacts.email IS NOT NULL"""
         ).fetchall()
 
+    def list_all_contacts(self) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            """SELECT contacts.*, companies.name AS company_name
+               FROM contacts JOIN companies ON companies.id = contacts.company_id
+               ORDER BY contacts.id DESC"""
+        ).fetchall()
+
     # ------------------------------------------------------------- outreach_log
     def log_outreach(self, entry: OutreachLogEntry) -> int:
         cursor = self.conn.execute(
@@ -159,6 +166,18 @@ class Repository:
     def unsubscribed_emails(self) -> set[str]:
         rows = self.conn.execute("SELECT email FROM unsubscribed").fetchall()
         return {row["email"] for row in rows}
+
+    def list_outreach_log(self) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            """SELECT outreach_log.*, companies.name AS company_name
+               FROM outreach_log JOIN companies ON companies.id = outreach_log.company_id
+               ORDER BY outreach_log.id DESC"""
+        ).fetchall()
+
+    def list_unsubscribed(self) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM unsubscribed ORDER BY id DESC"
+        ).fetchall()
 
     # --------------------------------------------------------------- scrape_log
     def log_scrape(

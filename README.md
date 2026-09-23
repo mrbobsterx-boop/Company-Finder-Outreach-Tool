@@ -37,7 +37,24 @@ keys. Secrets can also be supplied via environment variables:
 `COMPANY_FINDER_SMTP_USERNAME`, `COMPANY_FINDER_SMTP_PASSWORD`,
 `COMPANY_FINDER_ANTHROPIC_API_KEY`.
 
-## Usage
+## GUI (local, button-driven)
+
+If you don't want to type CLI flags, run the same functionality from a
+local web UI instead:
+
+```bash
+streamlit run gui/app.py       # or: ./run_gui.sh
+```
+
+This opens `http://localhost:8501` in your browser. Everything runs on
+your own machine — it's a UI on top of the same `discovery` /
+`enrichment` / `storage` / `compliance` / `mailer` packages the CLI uses,
+not a hosted service. It gives you: a discover form, an enrich button with
+a progress bar, CSV export with a download button, a send flow that shows
+a dry-run preview before an explicit "send for real" confirmation, tabs to
+browse the database, and a settings form that writes to `config.yaml`.
+
+## Usage (CLI)
 
 Run these from the repository root (so the top-level packages resolve):
 
