@@ -43,7 +43,7 @@ If you don't want to type CLI flags, run the same functionality from a
 local web UI instead:
 
 ```bash
-streamlit run gui/app.py       # or: ./run_gui.sh
+./run_gui.sh                   # or: streamlit run gui/app.py
 ```
 
 This opens `http://localhost:8501` in your browser. Everything runs on
@@ -53,6 +53,24 @@ not a hosted service. It gives you: a discover form, an enrich button with
 a progress bar, CSV export with a download button, a send flow that shows
 a dry-run preview before an explicit "send for real" confirmation, tabs to
 browse the database, and a settings form that writes to `config.yaml`.
+
+`run_gui.sh` sets up the virtualenv itself on the very first run (so it
+works even with nothing installed yet) and permanently silences
+Streamlit's one-time "enter your email" onboarding prompt.
+
+### Desktop shortcut (Linux, incl. SteamOS Desktop Mode)
+
+To launch it with a double-click instead of a terminal:
+
+```bash
+./install_launcher.sh
+```
+
+Run once from inside the project folder. It adds a "Company Finder &
+Outreach" icon to the application menu (and to `~/Desktop`, if that
+folder exists) that runs `run_gui.sh` and opens the browser for you. The
+first launch may ask to "trust and run" the file — that's expected, just
+confirm it once.
 
 ## Usage (CLI)
 
