@@ -73,7 +73,12 @@ CREATE INDEX IF NOT EXISTS idx_companies_osm_id ON companies(osm_id);
 def get_connection(db_path: str | Path) -> sqlite3.Connection:
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path))
+    # check_same_thread=False: the GUI caches this connection as a
+    # process-wide singleton (st.cache_resource), and Streamlit runs each
+    # script rerun on a fresh thread — sqlite3's default same-thread check
+    # would reject that even though nothing here runs concurrently within
+    # a single session.
+    conn = sqlite3.connect(str(path), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
