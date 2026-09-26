@@ -9,7 +9,15 @@ place, shared with cli/main.py).
 """
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+
+# Streamlit only adds this script's own directory (gui/) to sys.path, not
+# the repository root — unlike `python -m cli`, which the shell's cwd
+# already puts there. Without this, `import compliance`/`storage`/... fails
+# with ModuleNotFoundError regardless of which directory streamlit is
+# launched from.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pandas as pd
 import streamlit as st
