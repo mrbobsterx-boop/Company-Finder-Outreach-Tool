@@ -25,22 +25,19 @@ fi
 
 URL="http://localhost:8501"
 
-# Ищем Chrome/Chromium вместо системного браузера по умолчанию.
+# Ищем Chrome/Chromium вместо системного браузера по умолчанию. Проверяем
+# только что нужный бинарь/flatpak вообще есть в PATH — без строгой
+# проверки "приложение точно установлено" (flatpak info), которая на
+# некоторых системах не проходит даже когда `flatpak run` работает.
 CHROME_CMD=""
-for candidate in google-chrome google-chrome-stable chromium chromium-browser; do
-  if command -v "$candidate" >/dev/null 2>&1; then
-    CHROME_CMD="$candidate"
+for c in "flatpak run com.google.Chrome" "flatpak run org.chromium.Chromium" \
+         google-chrome google-chrome-stable chromium chromium-browser; do
+  set -- $c
+  if command -v "$1" >/dev/null 2>&1; then
+    CHROME_CMD="$c"
     break
   fi
 done
-if [ -z "$CHROME_CMD" ] && command -v flatpak >/dev/null 2>&1; then
-  for appid in com.google.Chrome org.chromium.Chromium; do
-    if flatpak info "$appid" >/dev/null 2>&1; then
-      CHROME_CMD="flatpak run $appid"
-      break
-    fi
-  done
-fi
 
 if [ -n "$CHROME_CMD" ]; then
   echo "Открою в Chrome: $CHROME_CMD"
