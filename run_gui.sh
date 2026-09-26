@@ -23,4 +23,30 @@ if [ ! -f "$HOME/.streamlit/credentials.toml" ]; then
   printf '[general]\nemail = ""\n' > "$HOME/.streamlit/credentials.toml"
 fi
 
-streamlit run gui/app.py
+URL="http://localhost:8501"
+
+# Ищем Chrome/Chromium вместо системного браузера по умолчанию.
+CHROME_CMD=""
+for candidate in google-chrome google-chrome-stable chromium chromium-browser; do
+  if command -v "$candidate" >/dev/null 2>&1; then
+    CHROME_CMD="$candidate"
+    break
+  fi
+done
+if [ -z "$CHROME_CMD" ] && command -v flatpak >/dev/null 2>&1; then
+  for appid in com.google.Chrome org.chromium.Chromium; do
+    if flatpak info "$appid" >/dev/null 2>&1; then
+      CHROME_CMD="flatpak run $appid"
+      break
+    fi
+  done
+fi
+
+if [ -n "$CHROME_CMD" ]; then
+  echo "Открою в Chrome: $CHROME_CMD"
+  ( sleep 3 && $CHROME_CMD --new-window "$URL" >/dev/null 2>&1 & )
+  streamlit run gui/app.py --server.headless true
+else
+  echo "Chrome не найден на этой системе — открываю в браузере по умолчанию."
+  streamlit run gui/app.py
+fi
