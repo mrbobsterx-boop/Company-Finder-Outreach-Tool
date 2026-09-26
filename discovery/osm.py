@@ -122,7 +122,13 @@ class OSMDiscoveryProvider(DiscoveryProvider):
             headers={"User-Agent": self.user_agent},
             timeout=90,
         )
-        response.raise_for_status()
+        if not response.ok:
+            logger.error("Overpass query was:\n%s", query)
+            logger.error("Overpass response body:\n%s", response.text[:2000])
+            raise RuntimeError(
+                f"Overpass request failed with HTTP {response.status_code}: "
+                f"{response.text[:500]}"
+            )
         payload = response.json()
 
         companies: list[Company] = []
