@@ -37,9 +37,10 @@ def cmd_discover(args: argparse.Namespace, config: dict) -> None:
     repo = _repository(config)
     provider = OSMDiscoveryProvider(
         overpass_base_url=config["discovery"]["overpass_base_url"],
-        nominatim_base_url=config["discovery"]["nominatim_base_url"],
+        geocoder_base_url=config["discovery"]["geocoder_base_url"],
         user_agent=config["discovery"]["user_agent"],
         request_delay_seconds=config["discovery"]["request_delay_seconds"],
+        bbox_radius_km=config["discovery"]["bbox_radius_km"],
     )
 
     companies = provider.search(

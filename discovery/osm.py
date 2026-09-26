@@ -1,6 +1,6 @@
-"""Free discovery provider backed by OpenStreetMap (Nominatim + Overpass).
+"""Free discovery provider backed by OpenStreetMap (Photon + Overpass).
 
-Nominatim resolves "country, region, city" to a bounding box; Overpass then
+Photon resolves "country, region, city" to a bounding box; Overpass then
 returns every node/way tagged with the business category inside that box.
 Both are free and keyless, but have fair-use limits, so this client throttles
 itself rather than firing requests back to back.
@@ -15,7 +15,7 @@ import requests
 
 from discovery.base import DiscoveryProvider
 from discovery.categories import resolve_category
-from discovery.nominatim import BoundingBox, NominatimClient
+from discovery.geocoding import BoundingBox, PhotonClient
 from storage.models import Company
 
 logger = logging.getLogger(__name__)
@@ -82,17 +82,19 @@ class OSMDiscoveryProvider(DiscoveryProvider):
     def __init__(
         self,
         overpass_base_url: str = "https://overpass-api.de/api/interpreter",
-        nominatim_base_url: str = "https://nominatim.openstreetmap.org",
+        geocoder_base_url: str = "https://photon.komoot.io",
         user_agent: str = "company-finder-outreach-tool/0.1",
         request_delay_seconds: float = 1.0,
+        bbox_radius_km: float = 6.0,
     ):
         self.overpass_base_url = overpass_base_url.rstrip("/")
         self.user_agent = user_agent
         self.request_delay_seconds = request_delay_seconds
-        self.nominatim = NominatimClient(
-            base_url=nominatim_base_url,
+        self.geocoder = PhotonClient(
+            base_url=geocoder_base_url,
             user_agent=user_agent,
             min_request_interval=max(request_delay_seconds, 1.0),
+            bbox_radius_km=bbox_radius_km,
         )
 
     def search(
@@ -102,7 +104,7 @@ class OSMDiscoveryProvider(DiscoveryProvider):
         city: Optional[str],
         category: str,
     ) -> List[Company]:
-        bbox = self.nominatim.geocode_bbox(country=country, region=region, city=city)
+        bbox = self.geocoder.geocode_bbox(country=country, region=region, city=city)
         if bbox is None:
             logger.warning(
                 "Could not geocode %s / %s / %s — skipping Overpass query",

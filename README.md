@@ -88,7 +88,10 @@ unless you pass `--live`. There is no way to send for real by accident.
 
 ### discover
 
-Geocodes the location with Nominatim, then queries Overpass for
+Geocodes the location with Photon (the public Nominatim demo server
+actively blocks scripted clients per its usage policy, so it isn't used
+by default — `discovery/geocoding.py` still has a `NominatimClient` for
+anyone self-hosting their own instance), then queries Overpass for
 matching businesses (`--category` maps to OSM `shop=*`/`office=*`/
 `amenity=*` tags — see `discovery/categories.py`; unknown categories fall
 back to matching the string directly against all three). Companies are
@@ -142,7 +145,7 @@ entirely inside free tiers:
 
 | Stage | Default | Cost |
 |---|---|---|
-| discover | OSM Overpass + Nominatim | free |
+| discover | OSM Overpass + Photon | free |
 | enrich | own scraper (requests + BeautifulSoup) | free (just runtime) |
 | enrich AI fallback | off, or local Ollama | free |
 | send | SMTP via a free-tier provider (e.g. Brevo, ~300/day) | free |

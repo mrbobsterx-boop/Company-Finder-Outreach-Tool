@@ -19,9 +19,10 @@ _DEFAULTS: dict[str, Any] = {
     "database": {"path": "data/company_finder.sqlite3"},
     "discovery": {
         "provider": "osm",
-        "nominatim_base_url": "https://nominatim.openstreetmap.org",
+        "geocoder_base_url": "https://photon.komoot.io",
         "overpass_base_url": "https://overpass-api.de/api/interpreter",
         "request_delay_seconds": 1.0,
+        "bbox_radius_km": 6.0,
         "user_agent": "company-finder-outreach-tool/0.1 (contact: set-your-email@example.com)",
     },
     "enrichment": {
