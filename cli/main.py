@@ -36,7 +36,7 @@ def _repository(config: dict) -> Repository:
 def cmd_discover(args: argparse.Namespace, config: dict) -> None:
     repo = _repository(config)
     provider = OSMDiscoveryProvider(
-        overpass_base_url=config["discovery"]["overpass_base_url"],
+        overpass_fallback_urls=config["discovery"]["overpass_urls"],
         geocoder_base_url=config["discovery"]["geocoder_base_url"],
         user_agent=config["discovery"]["user_agent"],
         request_delay_seconds=config["discovery"]["request_delay_seconds"],

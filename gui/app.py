@@ -87,7 +87,7 @@ if page == "🔍 Поиск компаний":
         else:
             with st.spinner("Запрашиваю Photon и Overpass..."):
                 provider = OSMDiscoveryProvider(
-                    overpass_base_url=config["discovery"]["overpass_base_url"],
+                    overpass_fallback_urls=config["discovery"]["overpass_urls"],
                     geocoder_base_url=config["discovery"]["geocoder_base_url"],
                     user_agent=config["discovery"]["user_agent"],
                     request_delay_seconds=config["discovery"]["request_delay_seconds"],

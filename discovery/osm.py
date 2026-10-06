@@ -78,16 +78,34 @@ def _element_to_company(
     )
 
 
+#: Public, free, keyless Overpass mirrors, tried in order. The big main
+#: instance (overpass-api.de and its lz4 alias) now rejects scripted
+#: clients outright (406), and several community mirrors have turned out
+#: to be unreliable or regional-only — so instead of betting on one, try
+#: each until one actually answers, rather than waiting ~90s on a dead
+#: host before failing the whole search.
+DEFAULT_OVERPASS_MIRRORS = [
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.openstreetmap.ru/api/interpreter",
+]
+
+
 class OSMDiscoveryProvider(DiscoveryProvider):
     def __init__(
         self,
-        overpass_base_url: str = "https://overpass.kumi.systems/api/interpreter",
+        overpass_base_url: Optional[str] = None,
+        overpass_fallback_urls: Optional[List[str]] = None,
         geocoder_base_url: str = "https://photon.komoot.io",
         user_agent: str = "company-finder-outreach-tool/0.1",
         request_delay_seconds: float = 1.0,
         bbox_radius_km: float = 6.0,
     ):
-        self.overpass_base_url = overpass_base_url.rstrip("/")
+        if overpass_base_url:
+            mirrors = [overpass_base_url, *(overpass_fallback_urls or [])]
+        else:
+            mirrors = overpass_fallback_urls or list(DEFAULT_OVERPASS_MIRRORS)
+        self.overpass_mirrors = [url.rstrip("/") for url in mirrors]
         self.user_agent = user_agent
         self.request_delay_seconds = request_delay_seconds
         self.geocoder = PhotonClient(
@@ -115,29 +133,38 @@ class OSMDiscoveryProvider(DiscoveryProvider):
         tags = resolve_category(category)
         query = _build_overpass_query(bbox, tags)
 
-        time.sleep(self.request_delay_seconds)
         overpass_headers = {
             "User-Agent": self.user_agent,
             "Accept": "application/json",
             "Accept-Language": "en",
         }
-        try:
-            response = requests.post(
-                self.overpass_base_url, data={"data": query},
-                headers=overpass_headers, timeout=90,
-            )
-        except (requests.Timeout, requests.ConnectionError) as exc:
-            logger.warning("Overpass request timed out, retrying once: %s", exc)
-            response = requests.post(
-                self.overpass_base_url, data={"data": query},
-                headers=overpass_headers, timeout=90,
-            )
-        if not response.ok:
-            logger.error("Overpass query was:\n%s", query)
-            logger.error("Overpass response body:\n%s", response.text[:2000])
+
+        response = None
+        errors: list[str] = []
+        for mirror_url in self.overpass_mirrors:
+            time.sleep(self.request_delay_seconds)
+            try:
+                candidate = requests.post(
+                    mirror_url, data={"data": query},
+                    headers=overpass_headers, timeout=45,
+                )
+            except (requests.Timeout, requests.ConnectionError) as exc:
+                logger.warning("Overpass mirror %s failed: %s", mirror_url, exc)
+                errors.append(f"{mirror_url}: {exc}")
+                continue
+            if not candidate.ok:
+                logger.warning(
+                    "Overpass mirror %s returned HTTP %d: %s",
+                    mirror_url, candidate.status_code, candidate.text[:300],
+                )
+                errors.append(f"{mirror_url}: HTTP {candidate.status_code}")
+                continue
+            response = candidate
+            break
+
+        if response is None:
             raise RuntimeError(
-                f"Overpass request failed with HTTP {response.status_code}: "
-                f"{response.text[:500]}"
+                "All Overpass mirrors failed:\n" + "\n".join(errors)
             )
         payload = response.json()
 
