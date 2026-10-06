@@ -27,9 +27,10 @@ operational overhead until that stops being true.
 ## Setup
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate   # Windows: python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements-dev.txt
-cp config.example.yaml config.yaml   # then fill in SMTP credentials, etc.
+cp config.example.yaml config.yaml   # Windows: copy config.example.yaml config.yaml
+# then fill in SMTP credentials, etc. — or skip this and use the GUI's Settings page instead
 ```
 
 `config.yaml` is gitignored — never commit real SMTP credentials or API
@@ -43,7 +44,8 @@ If you don't want to type CLI flags, run the same functionality from a
 local web UI instead:
 
 ```bash
-./run_gui.sh                   # or: streamlit run gui/app.py
+./run_gui.sh                   # Linux/macOS — or: streamlit run gui/app.py
+run_gui.bat                    # Windows      — or: streamlit run gui\app.py
 ```
 
 This opens `http://localhost:8501` in your browser. Everything runs on
@@ -54,23 +56,28 @@ a progress bar, CSV export with a download button, a send flow that shows
 a dry-run preview before an explicit "send for real" confirmation, tabs to
 browse the database, and a settings form that writes to `config.yaml`.
 
-`run_gui.sh` sets up the virtualenv itself on the very first run (so it
-works even with nothing installed yet) and permanently silences
-Streamlit's one-time "enter your email" onboarding prompt.
+Both `run_gui.sh` and `run_gui.bat` set up the virtualenv themselves on
+the very first run (so they work even with nothing installed yet),
+permanently silence Streamlit's one-time "enter your email" onboarding
+prompt, and open Chrome specifically when one is found on the system
+(falling back to the default browser otherwise).
 
-### Desktop shortcut (Linux, incl. SteamOS Desktop Mode)
+### Desktop shortcut
 
-To launch it with a double-click instead of a terminal:
+To launch it with a double-click instead of a terminal — run once from
+inside the project folder:
 
 ```bash
-./install_launcher.sh
+./install_launcher.sh          # Linux/macOS, incl. SteamOS Desktop Mode
+install_launcher.bat           # Windows
 ```
 
-Run once from inside the project folder. It adds a "Company Finder &
-Outreach" icon to the application menu (and to `~/Desktop`, if that
-folder exists) that runs `run_gui.sh` and opens the browser for you. The
-first launch may ask to "trust and run" the file — that's expected, just
-confirm it once.
+- **Linux/macOS**: adds a "Company Finder & Outreach" icon to the
+  application menu (and to `~/Desktop`, if that folder exists). The first
+  launch may ask to "trust and run" the file — that's expected, just
+  confirm it once.
+- **Windows**: adds a "Company Finder and Outreach" shortcut to your
+  Desktop.
 
 ## Usage (CLI)
 

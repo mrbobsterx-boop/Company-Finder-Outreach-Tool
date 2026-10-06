@@ -7,8 +7,8 @@ venv/
 # runtime data
 data/*.sqlite3
 data/*.sqlite3-journal
-company_finder/enrichment/cache/*
-!company_finder/enrichment/cache/.gitkeep
+enrichment/cache/*
+!enrichment/cache/.gitkeep
 
 # secrets / local config
 config.yaml
