@@ -17,7 +17,57 @@ from typing import NamedTuple, Optional
 
 import requests
 
+from discovery.country_codes import resolve_country_name
+
 logger = logging.getLogger(__name__)
+
+GEOCODE_TIMEOUT_SECONDS = 30
+
+
+_CITY_TYPES = {"city", "town", "village", "hamlet"}
+_REGION_TYPES = {"state", "county"}
+_COUNTRY_TYPES = {"country"}
+
+
+def _select_feature(features: list[dict], city: Optional[str], region: Optional[str]) -> Optional[dict]:
+    """Pick the result matching the most specific level actually asked for.
+
+    Photon ranks by relevance, not administrative level, so a query for a
+    city whose name matches its own region (very common for Ukrainian/
+    Russian oblasts, e.g. "Poltava" the city vs. "Poltava Oblast") can
+    return the much larger region first. Search the top results for one
+    tagged at the right level before falling back to Photon's own order.
+    """
+    if not features:
+        return None
+    if city:
+        wanted = _CITY_TYPES
+    elif region:
+        wanted = _REGION_TYPES
+    else:
+        wanted = _COUNTRY_TYPES
+    for feature in features:
+        if feature.get("properties", {}).get("type") in wanted:
+            return feature
+    return features[0]
+
+
+def _get_with_retry(url: str, *, params: dict, headers: dict, retries: int = 2):
+    """Free public geocoders occasionally stall; one retry covers most of
+    those without making a transient slowdown look like a hard failure."""
+    last_error: Exception | None = None
+    for attempt in range(retries + 1):
+        try:
+            return requests.get(
+                url, params=params, headers=headers, timeout=GEOCODE_TIMEOUT_SECONDS
+            )
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            last_error = exc
+            logger.warning(
+                "Geocoding request to %s timed out (attempt %d/%d): %s",
+                url, attempt + 1, retries + 1, exc,
+            )
+    raise last_error
 
 
 class BoundingBox(NamedTuple):
@@ -67,26 +117,30 @@ class PhotonClient:
 
         Prefers city, falls back to region, falls back to country.
         """
-        query_parts = [part for part in (city, region, country) if part]
+        # Resolve a bare 2-letter country code (e.g. "UA") to its full name
+        # ("Ukraine") for the search text — Photon matches place names, not
+        # ISO codes, and a bare code can match an unrelated place entirely.
+        country_name = resolve_country_name(country) if country else country
+        query_parts = [part for part in (city, region, country_name) if part]
         query = ", ".join(query_parts)
         if not query:
             return None
 
         self._throttle()
-        response = requests.get(
+        response = _get_with_retry(
             f"{self.base_url}/api/",
-            params={"q": query, "limit": 1},
+            params={"q": query, "limit": 5},
             headers={"User-Agent": self.user_agent},
-            timeout=15,
         )
         self._last_request_time = time.monotonic()
         response.raise_for_status()
         features = response.json().get("features") or []
-        if not features:
+        feature = _select_feature(features, city=city, region=region)
+        if feature is None:
             logger.warning("Photon found no results for %r", query)
             return None
 
-        properties = features[0].get("properties", {})
+        properties = feature.get("properties", {})
         # Photon's "extent" is [west_lon, north_lat, east_lon, south_lat] —
         # present for administrative areas (countries/regions/cities), which
         # is exactly what we always query for here.
@@ -95,7 +149,7 @@ class PhotonClient:
             west, north, east, south = extent
             return BoundingBox(south=south, north=north, west=west, east=east)
 
-        lon, lat = features[0]["geometry"]["coordinates"]
+        lon, lat = feature["geometry"]["coordinates"]
         return _bbox_from_point(lat, lon, self.bbox_radius_km)
 
 
@@ -124,17 +178,17 @@ class NominatimClient:
     def geocode_bbox(
         self, country: str, region: Optional[str] = None, city: Optional[str] = None
     ) -> Optional[BoundingBox]:
-        query_parts = [part for part in (city, region, country) if part]
+        country_name = resolve_country_name(country) if country else country
+        query_parts = [part for part in (city, region, country_name) if part]
         query = ", ".join(query_parts)
         if not query:
             return None
 
         self._throttle()
-        response = requests.get(
+        response = _get_with_retry(
             f"{self.base_url}/search",
             params={"q": query, "format": "jsonv2", "limit": 1},
             headers={"User-Agent": self.user_agent},
-            timeout=15,
         )
         self._last_request_time = time.monotonic()
         response.raise_for_status()

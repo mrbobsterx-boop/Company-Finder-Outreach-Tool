@@ -75,10 +75,10 @@ if page == "🔍 Поиск компаний":
 
     with st.form("discover_form"):
         col1, col2 = st.columns(2)
-        country = col1.text_input("Страна (код, напр. DE)", "DE")
+        country = col1.text_input("Страна (код, напр. UA)", "UA")
         region = col2.text_input("Регион (необязательно)", "")
-        city = col1.text_input("Город (необязательно)", "")
-        category = col2.text_input("Категория бизнеса (напр. webdev, restaurant, law)", "webdev")
+        city = col1.text_input("Город (необязательно)", "Poltava")
+        category = col2.text_input("Категория бизнеса (напр. dentist, webdev, restaurant)", "dentist")
         submitted = st.form_submit_button("Найти компании", type="primary")
 
     if submitted:

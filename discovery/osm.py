@@ -116,16 +116,22 @@ class OSMDiscoveryProvider(DiscoveryProvider):
         query = _build_overpass_query(bbox, tags)
 
         time.sleep(self.request_delay_seconds)
-        response = requests.post(
-            self.overpass_base_url,
-            data={"data": query},
-            headers={
-                "User-Agent": self.user_agent,
-                "Accept": "application/json",
-                "Accept-Language": "en",
-            },
-            timeout=90,
-        )
+        overpass_headers = {
+            "User-Agent": self.user_agent,
+            "Accept": "application/json",
+            "Accept-Language": "en",
+        }
+        try:
+            response = requests.post(
+                self.overpass_base_url, data={"data": query},
+                headers=overpass_headers, timeout=90,
+            )
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            logger.warning("Overpass request timed out, retrying once: %s", exc)
+            response = requests.post(
+                self.overpass_base_url, data={"data": query},
+                headers=overpass_headers, timeout=90,
+            )
         if not response.ok:
             logger.error("Overpass query was:\n%s", query)
             logger.error("Overpass response body:\n%s", response.text[:2000])

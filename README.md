@@ -84,7 +84,7 @@ install_launcher.bat           # Windows
 Run these from the repository root (so the top-level packages resolve):
 
 ```bash
-python -m cli discover --country DE --region NRW --city Siegburg --category webdev
+python -m cli discover --country UA --city Poltava --category dentist
 python -m cli enrich --batch 100
 python -m cli export --format csv --only-verified
 python -m cli send --template offer_v1.html --limit 50 --dry-run
