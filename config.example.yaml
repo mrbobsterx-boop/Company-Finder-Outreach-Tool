@@ -7,7 +7,14 @@ database:
 discovery:
   provider: osm # only "osm" is implemented today; add a new DiscoveryProvider for paid sources
   geocoder_base_url: https://photon.komoot.io # free, keyless; the public Nominatim demo server blocks scripted clients
-  overpass_base_url: https://overpass-api.de/api/interpreter
+  # Public, free, keyless Overpass mirror. The main overpass-api.de instance
+  # has started rejecting scripted clients outright (406 Not Acceptable);
+  # if this mirror ever does the same, swap in one of:
+  #   https://overpass.openstreetmap.ru/api/interpreter
+  #   https://overpass.private.coffee/api/interpreter
+  # (avoid regional-only mirrors like overpass.osm.ch — they don't cover
+  # the whole planet, so a search outside their region silently returns 0)
+  overpass_base_url: https://overpass.kumi.systems/api/interpreter
   request_delay_seconds: 1.0
   bbox_radius_km: 6.0 # search radius when the geocoder returns a point instead of an area boundary
   user_agent: "company-finder-outreach-tool/0.1 (contact: you@example.com)"

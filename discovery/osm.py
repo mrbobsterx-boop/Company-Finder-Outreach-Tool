@@ -81,7 +81,7 @@ def _element_to_company(
 class OSMDiscoveryProvider(DiscoveryProvider):
     def __init__(
         self,
-        overpass_base_url: str = "https://overpass-api.de/api/interpreter",
+        overpass_base_url: str = "https://overpass.kumi.systems/api/interpreter",
         geocoder_base_url: str = "https://photon.komoot.io",
         user_agent: str = "company-finder-outreach-tool/0.1",
         request_delay_seconds: float = 1.0,
@@ -119,7 +119,11 @@ class OSMDiscoveryProvider(DiscoveryProvider):
         response = requests.post(
             self.overpass_base_url,
             data={"data": query},
-            headers={"User-Agent": self.user_agent},
+            headers={
+                "User-Agent": self.user_agent,
+                "Accept": "application/json",
+                "Accept-Language": "en",
+            },
             timeout=90,
         )
         if not response.ok:

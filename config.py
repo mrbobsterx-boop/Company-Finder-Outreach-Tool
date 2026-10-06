@@ -20,7 +20,7 @@ _DEFAULTS: dict[str, Any] = {
     "discovery": {
         "provider": "osm",
         "geocoder_base_url": "https://photon.komoot.io",
-        "overpass_base_url": "https://overpass-api.de/api/interpreter",
+        "overpass_base_url": "https://overpass.kumi.systems/api/interpreter",
         "request_delay_seconds": 1.0,
         "bbox_radius_km": 6.0,
         "user_agent": "company-finder-outreach-tool/0.1 (contact: set-your-email@example.com)",
